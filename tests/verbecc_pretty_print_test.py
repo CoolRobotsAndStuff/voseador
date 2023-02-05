@@ -1,15 +1,12 @@
-from verbecc import Conjugator
 import pprint
+from verbecc import Conjugator
 from voseador import Voseador
 
-
+conjugator = Conjugator(lang='es')
 voseador = Voseador()
-
 pp = pprint.PrettyPrinter()
 
-cg = Conjugator(lang='es')
-conjugation = cg.conjugate("callar")
-
+conjugation = conjugator.conjugate("haber")
 conjugation = voseador.add_vos_to_verbecc_conjugation(conjugation)
 
 pp.pprint(conjugation["moods"])
