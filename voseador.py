@@ -34,8 +34,8 @@ class Voseador:
     __MOODS_WITH_SECOND_PERSON = ("indicativo", "imperativo", "subjuntivo", "condicional")
     
     def vos_from_vosotros(self, mood, tense, infinitivo, vosotros_verb):
-        if mood not in self.__VALID_TENSES_FROM_VOSOTROS.keys():
-            raise ValueError(f"Invalid mood {mood}. Possible moods are: {self.__VALID_MOODS_FROM_VOSOTROS}")
+        if tense not in self.__VALID_TENSES_FROM_VOSOTROS[mood]:
+            raise ValueError(f"Invalid tense '{mood} : {tense}' for derivation. Possible tenses are: {self.__VALID_TENSES_FROM_VOSOTROS}")
         
         if self.__is_verb_irregular(infinitivo, mood, tense):
             return self.__get_vos_from_irregularities_table(infinitivo, mood, tense)
