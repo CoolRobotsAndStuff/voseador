@@ -139,6 +139,8 @@ class Voseador:
     # Only a few moods and tenses need to be derivated from the "vosotros" person.
     # For the rest you can just copy the "tu" conjugation.
     def needs_derivation_from_vosotros(self, mood, tense):
+        mood = self.__normalize_string(mood)
+        tense = self.__normalize_string(tense)
         if mood not in self.__VALID_TENSES_FROM_VOSOTROS.keys():
             return False
         else:
