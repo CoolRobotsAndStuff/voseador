@@ -34,8 +34,10 @@ class Voseador:
     __MOODS_WITH_SECOND_PERSON = ("indicativo", "imperativo", "subjuntivo", "condicional")
     
     def vos_from_vosotros(self, mood, tense, infinitivo, vosotros_verb):
-        if tense not in self.__VALID_TENSES_FROM_VOSOTROS[mood]:
-            raise ValueError(f"Invalid tense '{mood} : {tense}' for derivation. Possible tenses are: {self.__VALID_TENSES_FROM_VOSOTROS}")
+        tense = self.__normalize_string(tense)
+        mood = self.__normalize_string(mood)
+        if not self.needs_derivation_from_vosotros(mood, tense):
+            raise ValueError(f"Invalid tense '{mood} {tense}' for derivation. Possible tenses are: {self.__get_valid_verbs_for_derivation_string()}")
         
         if self.__is_verb_irregular(infinitivo, mood, tense):
             return self.__get_vos_from_irregularities_table(infinitivo, mood, tense)
@@ -56,6 +58,8 @@ class Voseador:
 
         for mood in self.__MOODS_WITH_SECOND_PERSON:
             for tense in conjugation["moods"][mood]:
+                tense = self.__normalize_string(tense)
+                mood = self.__normalize_string(mood)
                 tense_verbs = conjugation["moods"][mood][tense]
                 tense_verbs_with_vos = self.__add_vos_to_verbecc_tense(mood, tense, tense_verbs, infinitivo)
                 final_conjugation["moods"][mood][tense] = tense_verbs_with_vos
@@ -63,7 +67,7 @@ class Voseador:
         return final_conjugation
     
     def __add_vos_to_verbecc_tense(self, mood_name, tense_name, tense_verbs, infinitivo):
-        if tense_name in self.__VALID_TENSES_FROM_VOSOTROS[mood_name]:
+        if self.needs_derivation_from_vosotros(mood_name, tense_name):
             vosotros_verb = self.__get_vosotros_verb_from_verbecc_tense_list(mood_name, tense_verbs)
             vos_verb = self.vos_from_vosotros(mood_name, tense_name, infinitivo, vosotros_verb)
 
@@ -104,22 +108,43 @@ class Voseador:
     def __get_vos_imperativo_from_vosotros_imperativo(self, tense, vosotros_verb):
         if tense == "afirmativo":
             vosotros_verb = self.__remove_d_from_vosotros_imperativo(vosotros_verb)
-            vosotros_verb = self.__add_tilde_to_last_letter(vosotros_verb)
+            vosotros_verb = self.__add_tilde_to_index_vocal(-1, vosotros_verb)
             return vosotros_verb
         else:
             return self.__remove_i_from_vosotros(vosotros_verb)
     
     def __get_vos_subjuntivo_from_vosotros_subjuntivo(self, tense, vosotros_verb):
         if tense == "presente":
-            return self.__remove_i_from_vosotros(vosotros_verb)
+            verb = self.__remove_i_from_vosotros(vosotros_verb)
+            verb = self.__add_tilde_to_index_vocal(-2, verb)
+            return verb
         elif tense == "pretérito-perfecto":
             words = vosotros_verb.split()
             aux_verb = words[0]
             aux_verb = self.__remove_i_from_vosotros(aux_verb)
+            aux_verb = self.__add_tilde_to_index_vocal(-2, aux_verb)
             return aux_verb + " " + words[1]
 
     def __get_vos_from_irregularities_table(self, infinitivo, mood, tense):
         return self.__irregular_verbs[infinitivo][mood][tense]
+    
+    def __get_valid_verbs_for_derivation_string(self):
+        final_string = ""
+        for mood, tenses in self.__VALID_TENSES_FROM_VOSOTROS.items():
+            for tense in tenses:
+                final_string += mood + " " + tense + ", "
+        
+        return final_string[:-2]
+    
+    # Only a few moods and tenses need to be derivated from the "vosotros" person.
+    # For the rest you can just copy the "tu" conjugation.
+    def needs_derivation_from_vosotros(self, mood, tense):
+        mood = self.__normalize_string(mood)
+        tense = self.__normalize_string(tense)
+        if mood not in self.__VALID_TENSES_FROM_VOSOTROS.keys():
+            return False
+        else:
+            return tense in self.__VALID_TENSES_FROM_VOSOTROS[mood]
 
     def __is_verb_irregular(self, infinitivo, mood, tense):
         if infinitivo in self.__irregular_verbs.keys():
@@ -150,9 +175,31 @@ class Voseador:
     def __remove_d_from_vosotros_imperativo(self, verb):
         return verb[:-1]
     
-    #"calla" -> "callá"
-    def __add_tilde_to_last_letter(self, verb):
-        return verb[:-1] + self.__ACCENTUATED_VOCALS[verb[-1]]
+    def __add_tilde_to_index_vocal(self, index, verb):
+        if verb[index] not in self.__ACCENTUATED_VOCALS:
+            return verb
+        f_verb = copy.copy(verb)
+        first_part = f_verb[:index]
+        last_part = f_verb[index:]
+        last_part = last_part[1:]
+        accentuated_vocal = self.__ACCENTUATED_VOCALS[f_verb[index]]
+        return first_part + accentuated_vocal + last_part
+    
+    # Deletes all tildes, converts to lowercase and replaces all unwanted symbols
+    def __normalize_string(self, tense):
+        f_tense = unidecode(copy.copy(tense))
+        f_tense = f_tense.lower()
+        f_tense = f_tense.replace(" ", "-")
+        f_tense = f_tense.replace("_", "-")
+        tense_parts = f_tense.split("-")
+        final_tense_parts = []
+        for p in tense_parts:
+            if p == "preterito":
+                final_tense_parts.append("pretérito")
+            else:
+                final_tense_parts.append(p)
+
+        return "-".join(final_tense_parts)
         
         
     
