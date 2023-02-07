@@ -1,5 +1,6 @@
 from unidecode import unidecode
 import copy
+import warnings
 
 class Voseador:
     __ACCENTUATED_VOCALS = {
@@ -34,6 +35,10 @@ class Voseador:
     __MOODS_WITH_SECOND_PERSON = ("indicativo", "imperativo", "subjuntivo", "condicional")
     
     def vos_from_vosotros(self, mood, tense, infinitivo, vosotros_verb):
+        warnings.warn("vos_from_vosotros method is deprecated. Please use get_vos_from_vosotros instead.", DeprecationWarning)
+        return self.get_vos_from_vosotros(mood, tense, infinitivo, vosotros_verb)
+
+    def get_vos_from_vosotros(self, mood, tense, infinitivo, vosotros_verb):
         tense = self.__normalize_string(tense)
         mood = self.__normalize_string(mood)
         if not self.needs_derivation_from_vosotros(mood, tense):
@@ -69,7 +74,7 @@ class Voseador:
     def __add_vos_to_verbecc_tense(self, mood_name, tense_name, tense_verbs, infinitivo):
         if self.needs_derivation_from_vosotros(mood_name, tense_name):
             vosotros_verb = self.__get_vosotros_verb_from_verbecc_tense_list(mood_name, tense_verbs)
-            vos_verb = self.vos_from_vosotros(mood_name, tense_name, infinitivo, vosotros_verb)
+            vos_verb = self.get_vos_from_vosotros(mood_name, tense_name, infinitivo, vosotros_verb)
 
         else:
             vos_verb = self.__isolate_verb(tense_verbs[1])
