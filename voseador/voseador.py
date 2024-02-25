@@ -53,27 +53,19 @@ class Voseador:
         tense = self.__normalize_string(tense)
         mood = self.__normalize_string(mood)
         if not self.needs_derivation_from_vosotros(mood, tense):
-            raise ValueError(
-                f"Invalid tense '{mood} {tense}' for derivation. Possible tenses are: {self.__get_valid_verbs_for_derivation_string()}"
-            )
+            raise ValueError(f"Invalid tense '{mood} {tense}' for derivation. Possible tenses are: {self.__get_valid_verbs_for_derivation_string()}")
 
         if self.__is_verb_irregular(infinitivo, mood, tense):
             return self.__get_vos_from_irregularities_table(infinitivo, mood, tense)
 
         elif mood == "indicativo":
-            return self.__get_vos_indicativo_from_vosotros_indicativo(
-                infinitivo, vosotros_verb
-            )
+            return self.__get_vos_indicativo_from_vosotros_indicativo(infinitivo, vosotros_verb)
 
         elif mood == "imperativo":
-            return self.__get_vos_imperativo_from_vosotros_imperativo(
-                tense, vosotros_verb
-            )
+            return self.__get_vos_imperativo_from_vosotros_imperativo(tense, vosotros_verb)
 
         elif mood == "subjuntivo":
-            return self.__get_vos_subjuntivo_from_vosotros_subjuntivo(
-                tense, vosotros_verb
-            )
+            return self.__get_vos_subjuntivo_from_vosotros_subjuntivo(tense, vosotros_verb)
 
     def add_vos_to_verbecc_conjugation(self, conjugation):
         final_conjugation = copy.deepcopy(conjugation)
@@ -84,32 +76,22 @@ class Voseador:
             for tense in conjugation["moods"][mood]:
                 tense = self.__normalize_string(tense)
                 mood = self.__normalize_string(mood)
+
                 tense_verbs = conjugation["moods"][mood][tense]
-                tense_verbs_with_vos = self.__add_vos_to_verbecc_tense(
-                    mood, tense, tense_verbs, infinitivo
-                )
+                tense_verbs_with_vos = self.__add_vos_to_verbecc_tense(mood, tense, tense_verbs, infinitivo)
                 final_conjugation["moods"][mood][tense] = tense_verbs_with_vos
 
         return final_conjugation
 
-    def __add_vos_to_verbecc_tense(
-        self, mood_name, tense_name, tense_verbs, infinitivo
-    ):
+    def __add_vos_to_verbecc_tense(self, mood_name, tense_name, tense_verbs, infinitivo):
         if self.needs_derivation_from_vosotros(mood_name, tense_name):
-            vosotros_verb = self.__get_vosotros_verb_from_verbecc_tense_list(
-                mood_name, tense_verbs
-            )
-            vos_verb = self.get_vos_from_vosotros(
-                mood_name, tense_name, infinitivo, vosotros_verb
-            )
-
+            vosotros_verb = self.__get_vosotros_verb_from_verbecc_tense_list(mood_name, tense_verbs)
+            vos_verb = self.get_vos_from_vosotros(mood_name, tense_name, infinitivo, vosotros_verb)
         else:
             vos_verb = self.__isolate_verb(tense_verbs[1], mood_name)
 
         final_tense_verbs = copy.deepcopy(tense_verbs)
-        return self.__insert_verb_in_verbecc_tense_list(
-            mood_name, tense_name, final_tense_verbs, vos_verb
-        )
+        return self.__insert_verb_in_verbecc_tense_list(mood_name, tense_name, final_tense_verbs, vos_verb)
 
     def __get_vosotros_verb_from_verbecc_tense_list(self, mood_name, tense_verbs):
         if mood_name == "imperativo":
@@ -121,9 +103,7 @@ class Voseador:
 
         return vosotros_verb
 
-    def __insert_verb_in_verbecc_tense_list(
-        self, mood_name, tense_name, tense_verbs, vos_verb
-    ):
+    def __insert_verb_in_verbecc_tense_list(self, mood_name, tense_name, tense_verbs, vos_verb):
         prefix = self.__get_prefix(mood_name, tense_name)
         if mood_name == "imperativo":
             tense_verbs.insert(1, prefix + vos_verb)
@@ -139,9 +119,7 @@ class Voseador:
         elif descinence == "er" or descinence == "ar":
             return self.__remove_i_from_vosotros(vosotros_verb)
         else:
-            raise ValueError(
-                "Invalid infinitivo for verb. Infinitivos should end in ar/er/ir."
-            )
+            raise ValueError("Invalid infinitivo for verb. Infinitivos should end in ar/er/ir.")
 
     def __get_vos_imperativo_from_vosotros_imperativo(self, tense, vosotros_verb):
         if tense == "afirmativo":
@@ -198,9 +176,7 @@ class Voseador:
     # "vosotros calláis" -> "calláis"
     def __isolate_verb(self, person_and_verb, mood_name):
         words = person_and_verb.split()
-        if (
-            len(words) == 1 or mood_name == "imperativo"
-        ):  # In case of the negative imperative we retain the "no"
+        if (len(words) == 1 or mood_name == "imperativo"):  # In case of the negative imperative we retain the "no"
             return person_and_verb
         else:
             return " ".join(words[1:])
